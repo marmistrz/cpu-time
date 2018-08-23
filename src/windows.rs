@@ -1,6 +1,9 @@
-use winapi::um::processthreadsapi::GetProcessTimes;
+use std::time::Duration;
+use std::rc::Rc;
+
+use winapi::um::processthreadsapi::{GetProcessTimes, GetThreadTimes};
 use winapi::um::processthreadsapi::{GetCurrentProcess, GetCurrentThread};
-use winapi::um::winnt::{HANDLE};
+use winapi::shared::minwindef::FILETIME;
 
 
 /// CPU Time Used by The Whole Process
@@ -26,9 +29,9 @@ pub struct ThreadTime(Duration,
 
 fn to_duration(kernel_time: FILETIME, user_time: FILETIME) -> Duration {
     // resolution: 100ns
-    let kns100 = (kernel_time.dwHighDateTime as u64 << 32) +
+    let kns100 = ((kernel_time.dwHighDateTime as u64) << 32) +
                   kernel_time.dwLowDateTime as u64;
-    let uns100 = (user_time.dwHighDateTime as u64 << 32) +
+    let uns100 = ((user_time.dwHighDateTime as u64) << 32) +
                   user_time.dwLowDateTime as u64;
     return Duration::new(
         (kns100 + uns100) / 10_000_000,
@@ -47,8 +50,7 @@ impl ProcessTime {
     ///
     /// # Panics
     ///
-    /// This method panics if linux kernel doesn't support
-    /// CLOCK_PROCESS_CPUTIME_ID, which works since linux 2.6.12 (~ year 2005).
+    /// If `GetProcessTimes` fails (not sure if it can happen)
     pub fn now() -> ProcessTime {
         let mut kernel_time = zero();
         let mut user_time = zero();
@@ -56,7 +58,7 @@ impl ProcessTime {
         let ok = GetProcessTimes(process,
             &mut zero(), &mut zero(),
             &mut kernel_time, &mut user_time);
-        if (!ok) {
+        if !ok {
             panic!("Can't get process times");
         }
         return to_duration(kernel_time, user_time);
@@ -76,8 +78,7 @@ impl ThreadTime {
     ///
     /// # Panics
     ///
-    /// This method panics if linux kernel doesn't support
-    /// CLOCK_THREAD_CPUTIME_ID, which works since linux 2.6.12 (~ year 2005).
+    /// If `GetThreadTimes` fails (not sure if it can happen)
     pub fn now() -> ThreadTime {
         let mut kernel_time = zero();
         let mut user_time = zero();
@@ -85,8 +86,8 @@ impl ThreadTime {
         let ok = GetThreadTimes(thread,
             &mut zero(), &mut zero(),
             &mut kernel_time, &mut user_time);
-        if (!ok) {
-            panic!("Can't get process times");
+        if !ok {
+            panic!("Can't get trhad times");
         }
         return to_duration(kernel_time, user_time);
     }
