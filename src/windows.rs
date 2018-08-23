@@ -62,7 +62,7 @@ impl ProcessTime {
         if ok == 0 {
             panic!("Can't get process times");
         }
-        return PprocessTime(to_duration(kernel_time, user_time));
+        return ProcessTime(to_duration(kernel_time, user_time));
     }
     /// Returns the amount of CPU time used from the previous timestamp to now.
     pub fn elapsed(&self) -> Duration {
@@ -90,6 +90,6 @@ impl ThreadTime {
         if ok == 0 {
             panic!("Can't get trhad times");
         }
-        return ThreadTime(to_duration(kernel_time, user_time));
+        return ThreadTime(to_duration(kernel_time, user_time), PhantomData);
     }
 }
