@@ -92,4 +92,14 @@ impl ThreadTime {
         }
         return ThreadTime(to_duration(kernel_time, user_time), PhantomData);
     }
+    /// Returns the amount of CPU time used by the current thread
+    /// from the previous timestamp to now.
+    pub fn elapsed(&self) -> Duration {
+        ThreadTime::now().duration_since(*self)
+    }
+    /// Returns the amount of CPU time used by the current thread
+    /// from the previous timestamp.
+    pub fn duration_since(&self, timestamp: ThreadTime) -> Duration {
+        self.0 - timestamp.0
+    }
 }
