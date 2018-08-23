@@ -1,5 +1,6 @@
 use std::time::Duration;
 use std::rc::Rc;
+use std::marker::PhantomData;
 
 use winapi::um::processthreadsapi::{GetProcessTimes, GetThreadTimes};
 use winapi::um::processthreadsapi::{GetCurrentProcess, GetCurrentThread};
@@ -58,10 +59,10 @@ impl ProcessTime {
         let ok = GetProcessTimes(process,
             &mut zero(), &mut zero(),
             &mut kernel_time, &mut user_time);
-        if !ok {
+        if ok == 0 {
             panic!("Can't get process times");
         }
-        return to_duration(kernel_time, user_time);
+        return PprocessTime(to_duration(kernel_time, user_time));
     }
     /// Returns the amount of CPU time used from the previous timestamp to now.
     pub fn elapsed(&self) -> Duration {
@@ -86,9 +87,9 @@ impl ThreadTime {
         let ok = GetThreadTimes(thread,
             &mut zero(), &mut zero(),
             &mut kernel_time, &mut user_time);
-        if !ok {
+        if ok == 0 {
             panic!("Can't get trhad times");
         }
-        return to_duration(kernel_time, user_time);
+        return ThreadTime(to_duration(kernel_time, user_time));
     }
 }
