@@ -55,10 +55,10 @@ impl ProcessTime {
     pub fn now() -> ProcessTime {
         let mut kernel_time = zero();
         let mut user_time = zero();
-        let process = GetCurrentProcess();
-        let ok = GetProcessTimes(process,
+        let process = unsafe { GetCurrentProcess() };
+        let ok = unsafe { GetProcessTimes(process,
             &mut zero(), &mut zero(),
-            &mut kernel_time, &mut user_time);
+            &mut kernel_time, &mut user_time) };
         if ok == 0 {
             panic!("Can't get process times");
         }
@@ -83,10 +83,10 @@ impl ThreadTime {
     pub fn now() -> ThreadTime {
         let mut kernel_time = zero();
         let mut user_time = zero();
-        let thread = GetCurrentThread();
-        let ok = GetThreadTimes(thread,
+        let thread = unsafe { GetCurrentThread() };
+        let ok = unsafe { GetThreadTimes(thread,
             &mut zero(), &mut zero(),
-            &mut kernel_time, &mut user_time);
+            &mut kernel_time, &mut user_time) };
         if ok == 0 {
             panic!("Can't get trhad times");
         }
